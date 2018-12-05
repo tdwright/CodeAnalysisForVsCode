@@ -5,17 +5,19 @@ import { Logger } from "./logger";
 
 export class BuildCommands {
   public build() {
-    this.normalBuild().then(() => {
-      Logger.Log("Done");
+    const filename = "buildoutput.txt";
+    this.normalBuild(filename).then(() => {
+      Logger.Log("Done!");
     });
   }
 
-  private normalBuild() {
+  private normalBuild(filename: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const command = "dotnet build";
+      const curDir = vscode.workspace.workspaceFolders[0].uri.toString();
+      const command = `dotnet build > ${curDir}/${filename}`;
       Logger.Log(`Executing ${command}`);
 
-      return Executor.exec(
+      Executor.exec(
         command,
         (err, stdout: string) => {
           if (err && err.killed) {
@@ -23,12 +25,12 @@ export class BuildCommands {
             reject(new Logger.Log("UserAborted"));
           }
 
-          Logger.Log(stdout);
-
           resolve();
         },
-        vscode.workspace.workspaceFolders[0].uri.toString()
+        curDir
       );
     });
   }
+
+  private handler(output: string) {}
 }
